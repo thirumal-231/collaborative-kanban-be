@@ -21,6 +21,9 @@ export const users = pgTable("users", {
 export const boards = pgTable("boards", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
+  ownerId: uuid("owner_id")
+    .references(() => users.id)
+    .notNull(),
 });
 
 export const lists = pgTable("lists", {
