@@ -12,4 +12,8 @@ boardRouter
   .post(boardController.createBoard);
 
 boardRouter.post("/:boardId/invite", boardController.inviteMember);
-boardRouter.post("/:boardId/lists", listController.createList);
+
+boardRouter
+  .route("/:boardId/lists")
+  .get(listController.getLists)
+  .post(listController.createList);
