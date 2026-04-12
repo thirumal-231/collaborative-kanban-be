@@ -1,8 +1,13 @@
 import express from "express";
 import * as authMiddleWare from "../middleware/authMiddleware.js";
 import * as listController from "../controllers/listController.js";
+import * as cardController from "../controllers/cardController.js";
 export const listRouter = express.Router();
 
 listRouter.use(authMiddleWare.protect);
 
 listRouter.delete("/:listId", listController.deleteList);
+listRouter
+  .route("/:listId/cards")
+  .get(cardController.getCards)
+  .post(cardController.createCard);

@@ -17,3 +17,5 @@ boardRouter
   .route("/:boardId/lists")
   .get(listController.getLists)
   .post(listController.createList);
+
+boardRouter.get("/:boardId/full", boardController.getFullBoard);

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/db.js";
-import { boardMembers, boards, users } from "../models/schema.js";
+import { boardMembers, boards, cards, lists, users } from "../models/schema.js";
 import { AppError } from "../Utils/AppError.js";
 import { catchAsync } from "../Utils/catchAsync.js";
 
@@ -105,5 +105,50 @@ export const inviteMember = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "User invited successfully",
+  });
+});
+
+export const getFullBoard = catchAsync(async (req, res, next) => {
+  const { boardId } = req.params;
+  const { id } = req.user;
+
+  // 1. check if board exists
+  const [board] = await db
+    .select()
+    .from(boards)
+    .where(eq(boards.id, boardId))
+    .limit(1);
+
+  if (!board) {
+    return next(new AppError("Board not found", 404));
+  }
+
+  // 2. check member or not
+  const [member] = await db
+    .select()
+    .from(boardMembers)
+    .where(and(eq(boardMembers.userId, id), eq(boardMembers.boardId, boardId)))
+    .limit(1);
+  if (!member)
+    return next(new AppError("Not authorized to access this board.", 403));
+
+  // 3. get full board
+  const fullBoard = await db.query.boards.findFirst({
+    where: (boards, { eq }) => eq(boards.id, boardId),
+    with: {
+      lists: {
+        orderBy: (lists, { asc }) => asc(lists.position),
+        with: {
+          cards: {
+            orderBy: (cards, { asc }) => asc(cards.position),
+          },
+        },
+      },
+    },
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: fullBoard,
   });
 });
