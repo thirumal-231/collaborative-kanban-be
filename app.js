@@ -6,14 +6,17 @@ import { boardRouter } from "./routes/board.routes.js";
 import { listRouter } from "./routes/list.routes.js";
 import { cardRouter } from "./routes/card.routes.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 export const app = express();
 app.use(express.json());
+
 app.use(
   cors({
     origin: "http://localhost:5173", // Your Vite frontend URL
     credentials: true, // Required for headers/cookies
   }),
 );
+app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/boards", boardRouter);
 app.use("/api/lists", listRouter);
