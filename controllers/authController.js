@@ -65,7 +65,10 @@ export const login = catchAsync(async (req, res, next) => {
     .limit(1);
 
   // 4. check if password is correct
-  if (!foundUser || !(await bcrypt.compare(password, foundUser.password)))
+  if (!foundUser)
+    return next(new AppError("User does not exist. Please Sign up", 401));
+
+  if (!(await bcrypt.compare(password, foundUser.password)))
     return next(new AppError("Incorrect email or password.", 401));
 
   // 5. sign a token with payload

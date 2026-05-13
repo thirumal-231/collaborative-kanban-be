@@ -21,6 +21,7 @@ export const users = pgTable("users", {
 export const boards = pgTable("boards", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
+  image: varchar("image", { length: 255 }),
   ownerId: uuid("owner_id")
     .references(() => users.id)
     .notNull(),

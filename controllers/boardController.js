@@ -6,14 +6,14 @@ import { catchAsync } from "../Utils/catchAsync.js";
 
 export const createBoard = catchAsync(async (req, res, next) => {
   // 1. check for board title
-  const { title } = req.body;
+  const { title, image } = req.body;
   if (!title) return next(new AppError("Title can't be empty", 400));
   const { id } = req.user;
   const result = await db.transaction(async (tx) => {
     // 2. create a board and get the ID back
     const [newBoard] = await tx
       .insert(boards)
-      .values({ title: title, ownerId: id })
+      .values({ title: title, image: image, ownerId: id })
       .returning();
     // 3. use that ID to link the user in the bridge table
     await tx.insert(boardMembers).values({ userId: id, boardId: newBoard.id });
