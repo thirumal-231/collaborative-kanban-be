@@ -7,6 +7,7 @@ export const listRouter = express.Router();
 listRouter.use(authMiddleWare.protect);
 
 listRouter.delete("/:listId", listController.deleteList);
+listRouter.patch("/:listId", listController.updateList);
 listRouter
   .route("/:listId/cards")
   .get(cardController.getCards)

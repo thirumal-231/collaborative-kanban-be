@@ -5,6 +5,7 @@ import { catchAsync } from "../Utils/catchAsync.js";
 import { db } from "../db/db.js";
 
 export const createList = catchAsync(async (req, res, next) => {
+  console.log("Incoming Request Parameters:", req.params);
   // 1. check list title
   const { title } = req.body;
   const { boardId } = req.params;
@@ -89,6 +90,48 @@ export const deleteList = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "list deleted successfully.",
+  });
+});
+
+export const updateList = catchAsync(async (req, res, next) => {
+  const { listId } = req.params;
+  const { id } = req.user;
+  const { title } = req.body;
+
+  if (!title) return next(new AppError("List title is required.", 400));
+
+  // get list
+  const [list] = await db
+    .select()
+    .from(lists)
+    .where(eq(lists.id, listId))
+    .limit(1);
+
+  if (!list) return next(new AppError("List not found", 404));
+
+  // cehck membership
+  const [member] = await db
+    .select()
+    .from(boardMembers)
+    .where(
+      and(eq(boardMembers.userId, id), eq(boardMembers.boardId, list.boardId)),
+    )
+    .limit(1);
+
+  if (!member)
+    return next(new AppError("Not authorized to delete this list", 403));
+
+  // delete
+  const [modifiedList] = await db
+    .update(lists)
+    .set({ title: title })
+    .where(eq(lists.id, listId))
+    .returning();
+
+  res.status(200).json({
+    status: "success",
+    message: "list updated successfully.",
+    data: modifiedList,
   });
 });
 
