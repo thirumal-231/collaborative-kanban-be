@@ -6,3 +6,4 @@ export const cardRouter = express.Router();
 cardRouter.use(authMiddleWare.protect);
 
 cardRouter.delete("/:cardId", cardController.deleteCard);
+cardRouter.patch("/:cardId", cardController.updateCard);

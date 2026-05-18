@@ -6,6 +6,7 @@ import {
   integer,
   timestamp,
   primaryKey,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -40,6 +41,7 @@ export const cards = pgTable("cards", {
   id: uuid("id").primaryKey().defaultRandom(),
   listId: uuid("list_id").references(() => lists.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
+  isCompleted: boolean("is_completed").default(false),
   position: integer("position").notNull(),
 });
 

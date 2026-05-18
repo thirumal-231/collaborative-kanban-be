@@ -100,6 +100,67 @@ export const deleteCard = catchAsync(async (req, res, next) => {
   });
 });
 
+export const updateCard = catchAsync(async (req, res, next) => {
+  // 1. check list title
+  const { cardId } = req.params;
+  const { id } = req.user;
+  const { title, isCompleted } = req.body;
+
+  if (title !== undefined) {
+    if (typeof title !== "string" || title.trim() === "") {
+      return next(new AppError("Title cannot be empty or blank spaces", 400));
+    }
+  }
+
+  // get card
+  const [card] = await db
+    .select()
+    .from(cards)
+    .where(eq(cards.id, cardId))
+    .limit(1);
+
+  if (!card) return next(new AppError("Card not found", 404));
+
+  const [list] = await db
+    .select()
+    .from(lists)
+    .where(eq(lists.id, card.listId))
+    .limit(1);
+  if (!list) return next(new AppError("List not found", 404));
+
+  const boardId = list.boardId;
+
+  // cehck membership
+  const [member] = await db
+    .select()
+    .from(boardMembers)
+    .where(and(eq(boardMembers.userId, id), eq(boardMembers.boardId, boardId)))
+    .limit(1);
+
+  if (!member)
+    return next(new AppError("Not authorized to delete this card", 403));
+
+  const updateData = {};
+  if (title !== undefined) updateData.title = title.trim();
+  if (isCompleted !== undefined) updateData.isCompleted = isCompleted;
+
+  if (Object.keys(updateData).length === 0) {
+    return next(new AppError("No update fields provided", 400));
+  }
+
+  const modifiedCard = await db
+    .update(cards)
+    .set(updateData)
+    .where(eq(cards.id, cardId))
+    .returning(); // Optional: returns the updated row instead of just a success count!
+
+  res.status(200).json({
+    status: "success",
+    message: "Card modified successfully.",
+    data: modifiedCard,
+  });
+});
+
 export const getCards = catchAsync(async (req, res, next) => {
   // 1. get the boardId
   const { listId } = req.params;
