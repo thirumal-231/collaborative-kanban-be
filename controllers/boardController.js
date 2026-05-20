@@ -54,6 +54,71 @@ export const getBoards = catchAsync(async (req, res, next) => {
   });
 });
 
+export const updateBoard = catchAsync(async (req, res, next) => {
+  const { boardId } = req.params;
+  const { title, image } = req.body;
+
+  // 1. check if board exists
+  const [board] = await db
+    .select()
+    .from(boards)
+    .where(eq(boards.id, boardId))
+    .limit(1);
+
+  if (!board) {
+    return next(new AppError("Board not found", 404));
+  }
+
+  // 2. only owner can update
+  if (board.ownerId !== req.user.id) {
+    return next(new AppError("Only owner can update board", 403));
+  }
+
+  // 3. update board
+  const [updatedBoard] = await db
+    .update(boards)
+    .set({
+      title: title ?? board.title,
+      image: image ?? board.image,
+    })
+    .where(eq(boards.id, boardId))
+    .returning();
+
+  res.status(200).json({
+    status: "success",
+    message: "Board updated successfully",
+    data: updatedBoard,
+  });
+});
+
+export const deleteBoard = catchAsync(async (req, res, next) => {
+  const { boardId } = req.params;
+
+  // 1. check if board exists
+  const [board] = await db
+    .select()
+    .from(boards)
+    .where(eq(boards.id, boardId))
+    .limit(1);
+
+  if (!board) {
+    return next(new AppError("Board not found", 404));
+  }
+
+  // 2. only owner can delete
+  if (board.ownerId !== req.user.id) {
+    return next(new AppError("Only owner can delete board", 403));
+  }
+
+  // 3. delete board
+  await db.delete(boards).where(eq(boards.id, boardId));
+
+  res.status(200).json({
+    status: "success",
+    message: "Board deleted successfully",
+  });
+});
+
 export const inviteMember = catchAsync(async (req, res, next) => {
   const { email } = req.body;
   const { boardId } = req.params;

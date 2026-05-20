@@ -13,9 +13,12 @@ boardRouter
 
 boardRouter.post("/:boardId/invite", boardController.inviteMember);
 
+boardRouter.get("/:boardId/full", boardController.getFullBoard);
+
+boardRouter.patch("/:boardId", boardController.updateBoard);
+boardRouter.delete("/:boardId", boardController.deleteBoard);
+
 boardRouter
   .route("/:boardId/lists")
   .get(listController.getLists)
   .post(listController.createList);
-
-boardRouter.get("/:boardId/full", boardController.getFullBoard);
